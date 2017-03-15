@@ -1,0 +1,3 @@
+[submodule "niosh2wikidata/libs/BiblioWikidata"]
+	path = niosh2wikidata/libs/BiblioWikidata
+	url = https://github.com/harej/BiblioWikidata

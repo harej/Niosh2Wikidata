@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__
+niosh2wikidata/wikidata_credentials.py
+niosh2wikidata/raw/
+niosh2wikidata/__pycache__
