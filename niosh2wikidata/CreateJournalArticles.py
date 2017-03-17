@@ -136,9 +136,9 @@ def process_data(nioshtic_data):
     The main method that kicks off the Wikidata editing. Takes a big bunch of
     data and goes through it.
 
-    This does not handle the data within the NIOSHTIC columns itself. It just
-    looks for identifiers and then uses those identifiers to make API calls to
-    the appropriate databases. The integration of NIOSHTIC content itself is
+    This does not handle the data within the NIOSHTIC columns themselves. It
+    just looks for identifiers and then uses those identifiers to make API calls
+    to the appropriate databases. The integration of NIOSHTIC content itself is
     handled through a separate class.
 
     @param nioshtic_data: dictionary with "entries" and "headers" keys
@@ -236,8 +236,8 @@ def process_data(nioshtic_data):
                     add_data = [wdi_core.WDItemID(value='Q60346', prop_nr='P859')]
                     if entry['DT'].lower() not in ['abstract', 'book', 'chapter']:
                         add_data.append(wdi_core.WDString(value=entry['NN'], prop_nr='P2880'))
-                    JournalArticles.item_creator(doi=doi, pmcid=pmcid,
-                                                 pmid=pmid, data=add_data)
+                    JournalArticles.item_creator([{'doi': doi, 'pmcid': pmcid,
+                                                  'pmid': pmid, 'data': add_data}])
 
                     # If entry['DT'] is Abstract or Chapter, the item on that
                     # thing will be created separately from its container. 
