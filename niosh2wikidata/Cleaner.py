@@ -5,9 +5,10 @@ Takes raw output from NIOSHTIC and converts it into a format usable by the rest
 of the Niosh2Wikidata library.
 """
 
-import re
+import arrow
 import json
 import os
+import re
 
 def fix_format(to_process):
     """
@@ -70,7 +71,8 @@ def clean(to_process):
 
         entries[entry_counter][rowkey] = rowvalue
 
-    return {'headers': headers, 'entries': entries}
+    retrieved = '+' + arrow.utcnow().format('YYYY-MM-DD') + 'T00:00:00Z'
+    return {'headers': headers, 'entries': entries, 'retrieved': retrieved}
 
 
 def process_file(filename):

@@ -14,7 +14,6 @@ import requests
 import urllib.parse
 from wikidataintegrator import wdi_core, wdi_login
 from wikidata_credentials import *
-from pprint import pprint
 
 try:
     from libs.BiblioWikidata import JournalArticles
@@ -190,8 +189,10 @@ def process_data(nioshtic_data):
             pmid = link.replace('http://www.ncbi.nlm.nih.gov/pubmed/?term=', '')
         elif link.startswith('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC'):
             pmcid = link.replace('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC', '')
+            pmcid = pmcid.replace('/', '')
         elif link.startswith('http://www.ncbi.nlm.nih.gov/pmc/articles/PMC'):
             pmcid = link.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/PMC', '')
+            pmcid = pmcid.replace('/', '')
         else:
             # Citoid is used as a last resort because it's super-slow.
             citoid = get_citoid(link)
