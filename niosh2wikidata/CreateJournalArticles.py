@@ -11,7 +11,7 @@ entry and do it totally automatic.
 import json
 import os
 import requests
-import urllib.parse
+import URLtoIdentifier
 from wikidataintegrator import wdi_core, wdi_login
 from wikidata_credentials import *
 
@@ -63,24 +63,6 @@ def append_identifiers(wikidata_id, doi=None, pmid=None, pmcid=None,
     if nioshtic is None:
         nioshtic = ''
     print(wikidata_id + '|' + doi + '|' + pmid + '|' + pmcid + '|' + nioshtic)
-
-def get_citoid(to_lookup):
-    """
-    Does a lookup to the Wikimedia Citoid instance.
-
-    @param to_lookup: string URL to look up
-    @return dictionary representing results
-    """
-
-    url = "https://en.wikipedia.org/api/rest_v1/data/citation/mediawiki/"
-    url += urllib.parse.quote_plus(to_lookup)
-
-    try:
-        query = requests.get(url).json()
-    except:
-        raise Exception(url)
-
-    return query
 
 def get_mapping(wd_prop):
     """
@@ -169,45 +151,10 @@ def process_data(nioshtic_data):
             wikidata_id.append(entry['Wikidata'])
             interesting = True
 
-        doi = None
-        pmid = None
-        pmcid = None
-        link = entry['LT'].replace(' ', '')
-        if link.endswith('.pdf'):
-            continue  # Don't bother
-        if link.startswith('http://dx.doi.org/'):
-            doi = link.replace('http://dx.doi.org/', '').upper()
-        elif link.startswith('http://doi.org/'):
-            doi = link.replace('http://doi.org/', '').upper()
-        elif link.startswith('https://dx.doi.org/'):
-            doi = link.replace('https://dx.doi.org/', '').upper()
-        elif link.startswith('https://doi.org/'):
-            doi = link.replace('https://doi.org/', '').upper()
-        elif link.startswith('https://www.ncbi.nlm.nih.gov/pubmed/?term='):
-            pmid = link.replace('https://www.ncbi.nlm.nih.gov/pubmed/?term=', '')
-        elif link.startswith('http://www.ncbi.nlm.nih.gov/pubmed/?term='):
-            pmid = link.replace('http://www.ncbi.nlm.nih.gov/pubmed/?term=', '')
-        elif link.startswith('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC'):
-            pmcid = link.replace('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC', '')
-            pmcid = pmcid.replace('/', '')
-        elif link.startswith('http://www.ncbi.nlm.nih.gov/pmc/articles/PMC'):
-            pmcid = link.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/PMC', '')
-            pmcid = pmcid.replace('/', '')
-        else:
-            # Citoid is used as a last resort because it's super-slow.
-            citoid = get_citoid(link)
-
-            if len(citoid) != 1:
-                continue
-
-            if 'DOI' in citoid:
-                doi = citoid['DOI'].upper()
-
-            if 'PMID' in citoid:
-                pmid = citoid['PMID']
-
-            if 'PMCID' in citoid:
-                pmcid = citoid['PMCID'].replace('PMC', '')
+        ident_block = URLtoIdentifier.convert(entry['LT'])
+        doi = ident_block['doi']  # string or None
+        pmid = ident_block['pmid']  # string or None
+        pmcid = ident_block['pmcid']  # string or None
 
         if doi is not None and doi in doi_to_wikidata:
             for single_wikidata_id in doi_to_wikidata[doi]:
