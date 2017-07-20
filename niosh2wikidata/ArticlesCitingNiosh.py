@@ -8,6 +8,7 @@ except ImportError:
     raise ImportError('Did you remember to `git submodule init` '
                       'and `git submodule update`?')
 
+
 def main():
     seed = ('https://query.wikidata.org/sparql'
             '?format=json'
@@ -62,7 +63,6 @@ def main():
         r = requests.get(pmc_template + query_string)
         blob = r.json()
 
-
         for result in blob['linksets']:
             if 'linksetdbs' in result:
                 for citing_id in result['linksetdbs'][0]['links']:
@@ -71,10 +71,15 @@ def main():
                             nonexistent.append(str(citing_id))
 
                             JournalArticles.item_creator([{
-                                'doi': None,
-                                'pmcid': str(citing_id),
-                                'pmid': None,
-                                'data': []}])
+                                'doi':
+                                None,
+                                'pmcid':
+                                str(citing_id),
+                                'pmid':
+                                None,
+                                'data': []
+                            }])
+
 
 if __name__ == '__main__':
     main()

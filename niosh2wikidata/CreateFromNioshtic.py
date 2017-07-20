@@ -20,7 +20,14 @@ import re
 from wikidataintegrator import wdi_core, wdi_login
 from wikidata_credentials import *
 
+try:
+    from libs.BiblioWikidata import JournalArticles
+except ImportError:
+    raise ImportError('Did you remember to `git submodule init` '
+                      'and `git submodule update`?')
+
 WIKI_SESSION = wdi_login.WDLogin(user=wikidata_username, pwd=wikidata_password)
+
 
 def process_data(nioshtic_data):
     """
@@ -46,18 +53,22 @@ def process_data(nioshtic_data):
             if entry['SO'].endswith(' :1'):
                 continue  # Only one page, most likely a flyer
 
-        if re.match('Youth@Work', entry['TI']) is not None \
-        and re.match('edition', entry['TI']) is not None:
+        if re.match(r'Youth@Work', entry['TI']) is not None \
+        and re.match(r'edition', entry['TI']) is not None:
             continue
 
         ref = [[
-            wdi_core.WDItemID(value='Q26822184', prop_nr='P248', is_reference=True),
-            wdi_core.WDExternalID(entry['NN'], prop_nr='P2880', is_reference=True),
-            wdi_core.WDTime(nioshtic_data['retrieved'], prop_nr='P813', is_reference=True)
+            wdi_core.WDItemID(
+                value='Q26822184', prop_nr='P248', is_reference=True),
+            wdi_core.WDExternalID(
+                entry['NN'], prop_nr='P2880', is_reference=True),
+            wdi_core.WDTime(
+                nioshtic_data['retrieved'], prop_nr='P813', is_reference=True)
         ]]
 
         data = [
-            wdi_core.WDExternalID(entry['NN'], prop_nr='P2880', references=ref),
+            wdi_core.WDExternalID(
+                entry['NN'], prop_nr='P2880', references=ref),
             wdi_core.WDItemID(value='Q60346', prop_nr='P859'),
             wdi_core.WDMonolingualText(
                 value=entry['TI'],
@@ -66,14 +77,17 @@ def process_data(nioshtic_data):
                 language='en')
         ]
 
-        i = wdi_core.WDItemEngine(data=data, domain='nioshgreylit', item_name=entry['TI'])
-        i.set_label(entry['TI'])
+        t = JournalArticles.clean_title(entry['TI'])
+        i = wdi_core.WDItemEngine(
+            data=data, domain='nioshgreylit', item_name=t)
+        i.set_label(t)
 
         try:
             print(i.write(WIKI_SESSION))
         except Exception as e:
             print(e)
             continue
+
 
 def process_file(filename):
     """
@@ -87,6 +101,7 @@ def process_file(filename):
         process_data(nioshtic_data)
         print("Processed: " + filename)
 
+
 def main():
     """
     If this file is invoked from command line, autodiscover JSON blobs in the
@@ -96,6 +111,7 @@ def main():
     for filename in os.listdir('raw/'):
         if filename.lower().endswith('.json'):
             process_file('raw/' + filename)
+
 
 if __name__ == '__main__':
     main()

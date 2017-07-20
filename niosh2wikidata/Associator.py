@@ -1,5 +1,4 @@
 #!/usr/local/bin/python3
-
 """
 Takes JSON output from Cleaner and associates it with other identifiers for
 cross-referencing.
@@ -8,6 +7,7 @@ cross-referencing.
 import json
 import os
 import requests
+
 
 def get_nioshtic_wikidata_mapping():
     """
@@ -18,13 +18,14 @@ def get_nioshtic_wikidata_mapping():
     """
 
     prefix = 'http://www.wikidata.org/entity/'
-    q = ('select%20%3Fi%20%3Fn%20%3Fdoi%20%3Fpubmed%20%3Fpmcid%20%3Fisbn10%20'
-         '%3Fisbn13%20where%20%7B%3Fi%20wdt%3AP2880%20%3Fn%20.%20optional%20%7B'
-         '%20%3Fi%20wdt%3AP356%20%3Fdoi%20%7D%20.%20optional%20%7B%20%3Fi%20wdt'
-         '%3AP698%20%3Fpubmed%20%7D%20.%20optional%20%7B%20%3Fi%20wdt%3AP932%20'
-         '%3Fpmcid%20%7D%20.%20optional%20%7B%20%3Fi%20wdt%3AP957%20%3Fisbn10'
-         '%20%7D%20.%20optional%20%7B%20%3Fi%20wdt%3AP212%20%3Fisbn13%20%7D%20'
-         '%7D')
+    q = (
+        'select%20%3Fi%20%3Fn%20%3Fdoi%20%3Fpubmed%20%3Fpmcid%20%3Fisbn10%20'
+        '%3Fisbn13%20where%20%7B%3Fi%20wdt%3AP2880%20%3Fn%20.%20optional%20%7B'
+        '%20%3Fi%20wdt%3AP356%20%3Fdoi%20%7D%20.%20optional%20%7B%20%3Fi%20wdt'
+        '%3AP698%20%3Fpubmed%20%7D%20.%20optional%20%7B%20%3Fi%20wdt%3AP932%20'
+        '%3Fpmcid%20%7D%20.%20optional%20%7B%20%3Fi%20wdt%3AP957%20%3Fisbn10'
+        '%20%7D%20.%20optional%20%7B%20%3Fi%20wdt%3AP212%20%3Fisbn13%20%7D%20'
+        '%7D')
     url = 'https://query.wikidata.org/sparql?format=json&query=' + q
 
     try:
@@ -55,6 +56,7 @@ def get_nioshtic_wikidata_mapping():
 
     return data
 
+
 def add_wikidata(nioshtic_data):
     """
     Associates NIOSHTIC entries with equivalent Wikidata identifiers, or skips
@@ -78,6 +80,8 @@ def add_wikidata(nioshtic_data):
     c = 0
 
     for entry in nioshtic_data['entries']:
+        if 'NN' not in entry:
+            continue
         if entry['NN'] in n_to_wd.keys():
             for header, val in n_to_wd[entry['NN']].items():
                 nioshtic_data['entries'][c][header] = val
@@ -87,6 +91,7 @@ def add_wikidata(nioshtic_data):
         c += 1
 
     return nioshtic_data
+
 
 def process_file(filename):
     """
@@ -101,10 +106,11 @@ def process_file(filename):
         nioshtic_data = json.load(f)
         nioshtic_data = add_wikidata(nioshtic_data)
         f.seek(0)
-        json.dump(nioshtic_data, f)
+        json.dump(nioshtic_data, f, indent=4)
         f.truncate()
 
         print("Updated file saved to: " + filename)
+
 
 def main():
     """
@@ -115,6 +121,7 @@ def main():
     for filename in os.listdir('raw/'):
         if filename.lower().endswith('.json'):
             process_file('raw/' + filename)
+
 
 if __name__ == '__main__':
     main()
