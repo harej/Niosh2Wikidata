@@ -1,13 +1,14 @@
 #!/usr/local/bin/python3
-
 """
 Takes raw output from NIOSHTIC and converts it into a format usable by the rest
 of the Niosh2Wikidata library.
 """
 
-import re
+import arrow
 import json
 import os
+import re
+
 
 def fix_format(to_process):
     """
@@ -32,6 +33,7 @@ def fix_format(to_process):
 
     return cleaned_string
 
+
 def clean(to_process):
     """
     Takes raw output from NIOSHTIC and produces a cleaned up dictionary.
@@ -55,8 +57,8 @@ def clean(to_process):
         pair = line.split(':', 1)  # "NN: 123456"
         if len(pair) != 2:
             continue
-        rowkey = pair[0]
-        rowvalue = pair[1]
+        rowkey = pair[0].strip()
+        rowvalue = pair[1].strip()
         if rowvalue == '':
             continue
         elif rowvalue[0] == ' ':
@@ -70,7 +72,13 @@ def clean(to_process):
 
         entries[entry_counter][rowkey] = rowvalue
 
-    return {'headers': headers, 'entries': entries}
+        if rowkey == 'DT':
+            new_dt = entries[entry_counter][rowkey].split(';')
+            new_dt = [x.lower().strip() for x in new_dt]
+            entries[entry_counter]['DT'] = new_dt
+
+    retrieved = '+' + arrow.utcnow().format('YYYY-MM-DD') + 'T00:00:00Z'
+    return {'headers': headers, 'entries': entries, 'retrieved': retrieved}
 
 
 def process_file(filename):
@@ -92,7 +100,7 @@ def process_file(filename):
         new_filename = filename + '.json'
 
         with open(new_filename, 'w') as nf:
-            json.dump(new_content, nf)
+            json.dump(new_content, nf, indent=4)
 
         print("Processed file save to: " + new_filename)
 
@@ -106,6 +114,7 @@ def main():
     for filename in os.listdir('raw/'):
         if filename.lower().endswith('.txt'):
             process_file('raw/' + filename)
+
 
 if __name__ == '__main__':
     main()
