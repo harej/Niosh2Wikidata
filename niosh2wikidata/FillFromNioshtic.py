@@ -606,27 +606,35 @@ def fill(nioshtic_data):
                     if identifiers['doi'] is not None \
                     and wd.has_property('P356') is False:
                         if is_main_work is True:
-                            wd.append('externalid', 'P356', JournalArticles.clean_title(identifiers['doi']))
+                            wd.append('externalid', 'P356',
+                                      JournalArticles.clean_title(
+                                          identifiers['doi']))
                         else:
-                            indirect_identifier(wd, 'doi', JournalArticles.clean_title(identifiers['doi']))
+                            indirect_identifier(wd, 'doi',
+                                                JournalArticles.clean_title(
+                                                    identifiers['doi']))
 
                     if identifiers['pmid'] is not None \
                     and wd.has_property('P698') is False:
                         if is_main_work is True:
                             wd.append('externalid', 'P698',
-                                      JournalArticles.clean_title(identifiers['pmid']))
+                                      JournalArticles.clean_title(
+                                          identifiers['pmid']))
                         else:
                             indirect_identifier(wd, 'pmid',
-                                                JournalArticles.clean_title((identifiers['pmid'])))
+                                                JournalArticles.clean_title(
+                                                    (identifiers['pmid'])))
 
                     if identifiers['pmcid'] is not None\
                     and wd.has_property('P932') is False:
                         if is_main_work is True:
                             wd.append('externalid', 'P932',
-                                      JournalArticles.clean_title(identifiers['pmcid']))
+                                      JournalArticles.clean_title(
+                                          identifiers['pmcid']))
                         else:
                             indirect_identifier(wd, 'pmcid',
-                                                JournalArticles.clean_title(identifiers['pmcid']))
+                                                JournalArticles.clean_title(
+                                                    identifiers['pmcid']))
 
             # instance of
             extant_instanceof = wd.get_referenced_statements('P31')
@@ -637,7 +645,8 @@ def fill(nioshtic_data):
                 # Failing that, we fall back to a generic "publication" tag.
                 found = False
                 for thing in entry['DT']:
-                    for instanceof in get_class(JournalArticles.clean_title(thing)):
+                    for instanceof in get_class(
+                            JournalArticles.clean_title(thing)):
                         found = True
                         wd.append('itemid', 'P31', instanceof)
 
@@ -725,14 +734,18 @@ def fill(nioshtic_data):
             # CAS numbers
             if 'CN' in entry:
                 cas_numbers = entry['CN'].split(';')
-                cas_numbers = [JournalArticles.clean_title(x) for x in cas_numbers]
+                cas_numbers = [
+                    JournalArticles.clean_title(x) for x in cas_numbers
+                ]
                 for cas_number in cas_numbers:
                     if cas_number in cas_map:
                         wd.append('itemid', 'P921', cas_map[cas_number])
 
             if 'PA' in entry:
                 priority_areas = entry['PA'].split(';')
-                priority_areas = [JournalArticles.clean_title(x) for x in priority_areas]
+                priority_areas = [
+                    JournalArticles.clean_title(x) for x in priority_areas
+                ]
                 for area in priority_areas:
                     area_item = get_priority_area(area)
                     if area_item is not None:
