@@ -51,8 +51,8 @@ class AskCrossref(threading.Thread):
             if found is False:
                 REDIS.setex(
                     'nioshtic_to_doi__' + wikidata_item,
-                    '',
-                    timedelta(days=30))
+                    timedelta(days=30),
+                    '')
 
 
 def main():
