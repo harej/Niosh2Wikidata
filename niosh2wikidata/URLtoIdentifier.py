@@ -83,6 +83,6 @@ def convert(link):
             if 'PMCID' in citoid:
                 pmcid = citoid['PMCID'].replace('PMC', '')
 
-    REDIS.setex('nioshtic__' + link, 1, timedelta(days=7))
+    REDIS.setex('nioshtic__' + link, timedelta(days=7), 1)
 
     return {'doi': doi, 'pmid': pmid, 'pmcid': pmcid}
