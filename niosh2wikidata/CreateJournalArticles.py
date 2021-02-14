@@ -134,29 +134,28 @@ def process_data(nioshtic_data):
 
         else:
             if wikidata_id == []:
-                continue  # temporarily do not create articles
                 # No Wikidata ID was found amongst the identifiers. This means
                 # the item truly does not exist, best we can tell.
 
-                #if doi is not None or pmid is not None or pmcid is not None:
-                #    add_data = [
-                #        wdi_core.WDItemID(value='Q60346', prop_nr='P859')
-                #    ]
-                #    if 'DT' in entry:
-                #        if 'abstract' in entry['DT'] or 'book' in entry['DT'] or 'chapter' in entry['DT']:
-                #            add_data.append(
-                #                wdi_core.WDString(
-                #                    value=entry['NN'], prop_nr='P2880'))
-                #    else:
-                #        add_data.append(
-                #            wdi_core.WDString(
-                #                value=entry['NN'], prop_nr='P2880'))
-                #    JournalArticles.item_creator([{
-                #        'doi': doi,
-                #        'pmcid': pmcid,
-                #        'pmid': pmid,
-                #        'data': add_data
-                #    }])
+                if doi is not None or pmid is not None or pmcid is not None:
+                    add_data = [
+                        wdi_core.WDItemID(value='Q60346', prop_nr='P859')
+                    ]
+                    if 'DT' in entry:
+                        if 'abstract' in entry['DT'] or 'book' in entry['DT'] or 'chapter' in entry['DT']:
+                            add_data.append(
+                                wdi_core.WDString(
+                                    value=entry['NN'], prop_nr='P2880'))
+                    else:
+                        add_data.append(
+                            wdi_core.WDString(
+                                value=entry['NN'], prop_nr='P2880'))
+                    JournalArticles.item_creator([{
+                        'doi': doi,
+                        'pmcid': pmcid,
+                        'pmid': pmid,
+                        'data': add_data
+                    }])
 
                     # If entry['DT'] is Abstract or Chapter, the item on that
                     # thing will be created separately from its container.
