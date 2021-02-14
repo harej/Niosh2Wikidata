@@ -5,7 +5,9 @@ Downloads records from NIOSHTIC and prepares text files.
 
 import requests
 import arrow
+import sys
 
+default_end_year = int(arrow.utcnow().format('YYYY')) + 1
 
 def get_content(start_date, end_date, search_term=''):
     """
@@ -93,16 +95,16 @@ def create_text_file(start_date, end_date, search_term=''):
         f.write(to_write)
 
 
-def main():
+def main(start_year=1900, end_year=default_end_year):
     """
-	Create text files for January 1900 to December 2024.
+	Create text files for January 1900 to this year + 1, or
+    the specified year range.
 	"""
 
-    date_ranges = [('01-1900', '12-1959')]
-    #date_ranges = []
+    date_ranges = []
 
     # Create a date range tuple for each year
-    for y in range(1960, int(arrow.utcnow().format('YYYY')) + 2):
+    for y in range(start_year, end_year + 1):
         tup = ('01-' + str(y), '12-' + str(y))
         date_ranges.append(tup)
 
@@ -112,4 +114,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    args = [int(x) for x in sys.argv[1:]]
+
+    if len(args) == 0:
+        main()
+    elif len(args) == 1:
+        main(start_year=args[0])
+    elif len(args) == 2:
+        main(start_year=args[0], end_year=args[1])

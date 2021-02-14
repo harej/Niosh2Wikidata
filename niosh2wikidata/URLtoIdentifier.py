@@ -2,8 +2,9 @@ import urllib.parse
 import requests
 import redis
 from datetime import timedelta
+from wikidata_credentials import *
 
-REDIS = redis.Redis(host='127.0.0.1', port=6379)
+REDIS = redis.Redis(host=redis_server, port=redis_port, password=redis_key)
 
 
 def get_citoid(to_lookup):
