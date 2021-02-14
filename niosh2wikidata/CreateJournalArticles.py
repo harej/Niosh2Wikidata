@@ -7,6 +7,7 @@ is plenty of rich metadata to pick from, so we can just iterate through each
 entry and do it totally automatic.
 """
 
+import codeswitch
 import json
 import os
 import requests
@@ -68,58 +69,6 @@ def append_identifiers(wikidata_id,
     print(wikidata_id + '|' + doi + '|' + pmid + '|' + pmcid + '|' + nioshtic)
 
 
-def get_mapping(wd_prop):
-    """
-    Meta-method for the three below. Takes a Wikidata property number (P123)
-    and does the lookup that returns the mapping.
-
-    @param wd_prop: string representing Wikidata property number e.g. P356.
-    @return dictionary {identifier: wikidata_id}
-    """
-
-    prefix = 'http://www.wikidata.org/entity/'
-    q = 'select%20%3Fi%20%3Fn%20where%20%7B%20%3Fi%20wdt%3A{0}%20%3Fn%20%7D'
-    q = q.format(wd_prop)
-    url = 'https://query.wikidata.org/sparql?format=json&query=' + q
-
-    try:
-        query = requests.get(url).json()['results']['bindings']
-    except:
-        raise Exception(url)
-
-    package = {}
-    for x in query:
-        if x['n']['value'] not in package:
-            package[x['n']['value']] = []
-        package[x['n']['value']].append(x['i']['value'].replace(prefix, ''))
-
-    return package
-
-
-def get_doi_to_wikidata():
-    """
-    Returns a mapping of Wikidata IDs and DOIs.
-    """
-
-    return get_mapping('P356')
-
-
-def get_pmid_to_wikidata():
-    """
-    Returns a mapping of Wikidata IDs and PMIDs.
-    """
-
-    return get_mapping('P698')
-
-
-def get_pmcid_to_wikidata():
-    """
-    Returns a mapping of Wikidata IDs and PMCIDs.
-    """
-
-    return get_mapping('P932')
-
-
 def process_data(nioshtic_data):
     """
     The main method that kicks off the Wikidata editing. Takes a big bunch of
@@ -132,10 +81,6 @@ def process_data(nioshtic_data):
 
     @param nioshtic_data: dictionary with "entries" and "headers" keys
     """
-
-    doi_to_wikidata = get_doi_to_wikidata()
-    pmid_to_wikidata = get_pmid_to_wikidata()
-    pmcid_to_wikidata = get_pmcid_to_wikidata()
 
     for entry in nioshtic_data['entries']:
         if 'NN' not in entry:
@@ -171,17 +116,14 @@ def process_data(nioshtic_data):
         pmid = ident_block['pmid']  # string or None
         pmcid = ident_block['pmcid']  # string or None
 
-        if doi is not None and doi in doi_to_wikidata:
-            for single_wikidata_id in doi_to_wikidata[doi]:
-                wikidata_id.append(single_wikidata_id)
+        if doi is not None and codeswitch.doi_to_wikidata(doi) is not None:
+            wikidata_id.append(codeswitch.doi_to_wikidata(doi))
 
-        if pmid is not None and pmid in pmid_to_wikidata:
-            for single_wikidata_id in pmid_to_wikidata[pmid]:
-                wikidata_id.append(single_wikidata_id)
+        if pmid is not None and codeswitch.pmid_to_wikidata(pmid) is not None:
+            wikidata_id.append(codeswitch.pmid_to_wikidata(pmid))
 
-        if pmcid is not None and pmcid in pmcid_to_wikidata:
-            for single_wikidata_id in pmcid_to_wikidata[pmcid]:
-                wikidata_id.append(single_wikidata_id)
+        if pmcid is not None and codeswitch.pmcid_to_wikidata(pmcid) is not None:
+            wikidata_id.append(codeswitch.pmcid_to_wikidata(pmcid))
 
         if interesting == True \
         and (doi is not None or pmid is not None or pmcid is not None):
@@ -192,28 +134,29 @@ def process_data(nioshtic_data):
 
         else:
             if wikidata_id == []:
+                continue  # temporarily do not create articles
                 # No Wikidata ID was found amongst the identifiers. This means
                 # the item truly does not exist, best we can tell.
 
-                if doi is not None or pmid is not None or pmcid is not None:
-                    add_data = [
-                        wdi_core.WDItemID(value='Q60346', prop_nr='P859')
-                    ]
-                    if 'DT' in entry:
-                        if 'abstract' in entry['DT'] or 'book' in entry['DT'] or 'chapter' in entry['DT']:
-                            add_data.append(
-                                wdi_core.WDString(
-                                    value=entry['NN'], prop_nr='P2880'))
-                    else:
-                        add_data.append(
-                            wdi_core.WDString(
-                                value=entry['NN'], prop_nr='P2880'))
-                    JournalArticles.item_creator([{
-                        'doi': doi,
-                        'pmcid': pmcid,
-                        'pmid': pmid,
-                        'data': add_data
-                    }])
+                #if doi is not None or pmid is not None or pmcid is not None:
+                #    add_data = [
+                #        wdi_core.WDItemID(value='Q60346', prop_nr='P859')
+                #    ]
+                #    if 'DT' in entry:
+                #        if 'abstract' in entry['DT'] or 'book' in entry['DT'] or 'chapter' in entry['DT']:
+                #            add_data.append(
+                #                wdi_core.WDString(
+                #                    value=entry['NN'], prop_nr='P2880'))
+                #    else:
+                #        add_data.append(
+                #            wdi_core.WDString(
+                #                value=entry['NN'], prop_nr='P2880'))
+                #    JournalArticles.item_creator([{
+                #        'doi': doi,
+                #        'pmcid': pmcid,
+                #        'pmid': pmid,
+                #        'data': add_data
+                #    }])
 
                     # If entry['DT'] is Abstract or Chapter, the item on that
                     # thing will be created separately from its container.
